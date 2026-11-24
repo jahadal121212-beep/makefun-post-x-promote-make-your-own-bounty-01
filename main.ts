@@ -30,6 +30,29 @@ const MANIFEST = {
   link: 'https://make.fun/bounty/post-x-promote-make-your-own-bounty-01',
 };
 
+// Validate the post before writing it: the entry is refused if the text
+// is too long for one X post or is missing any required piece (play code,
+// make.fun link, @makefunai tag). Fail loudly instead of writing a post
+// that cannot be entered.
+const MAX_POST_CHARS = 280;
+const problems: string[] = [];
+if (POST_TEXT.length > MAX_POST_CHARS) {
+  problems.push(`post is ${POST_TEXT.length} chars, over the ${MAX_POST_CHARS} limit`);
+}
+if (!POST_TEXT.includes(MANIFEST.play_code)) {
+  problems.push('post is missing the play code');
+}
+if (!POST_TEXT.includes(MANIFEST.link)) {
+  problems.push('post is missing the make.fun link');
+}
+if (!POST_TEXT.includes('@makefunai')) {
+  problems.push('post is missing the @makefunai tag');
+}
+if (problems.length > 0) {
+  console.error('invalid post: ' + problems.join('; '));
+  process.exit(1);
+}
+
 mkdirSync(OUTPUT_DIR, { recursive: true });
 writeFileSync(join(OUTPUT_DIR, 'post.txt'), POST_TEXT, 'utf8');
 writeFileSync(join(OUTPUT_DIR, 'post.json'), JSON.stringify(MANIFEST, null, 2) + '\n', 'utf8');
